@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .menu-btn,
+        .storage-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover,
+        .storage-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Main Container */
+        .main-container {
+            margin-top: 60px;
+            margin-bottom: 80px;
+            padding: 20px;
+            min-height: calc(100vh - 140px);
+        }
+
+        /* Note List */
+        .note-list,
+        .task-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 10px 0;
+        }
+
+        .note-item,
+        .task-item {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .note-item:hover,
+        .task-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .note-item-title,
+        .task-item-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .note-item-content {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            max-height: 80px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .note-item-date,
+        .task-item-date {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .note-item-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .tag-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Task Progress */
+        .task-progress-container {
+            margin-top: 10px;
+        }
+
+        .task-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .task-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .task-progress-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 10px 30px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .nav-item-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active .nav-item-icon {
+            color: white;
+        }
+
+        .nav-item-label {
+            font-size: 12px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active .nav-item-label {
+            color: white;
+        }
+
+        /* Menu Overlay */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            z-index: 2001;
+            transition: all 0.3s ease;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-sidebar.active {
+            left: 0;
+        }
+
+        .menu-header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .menu-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .menu-close {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-items {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .menu-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .menu-item-icon {
+            font-size: 20px;
+        }
+
+        /* Full Screen Overlay (B1, B2) */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #fff;
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .fullscreen-overlay.active {
+            display: flex;
+        }
+
+        .fullscreen-header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .fullscreen-header-left,
+        .fullscreen-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-btn {
+            padding: 8px 16px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .header-btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .fullscreen-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Note Editor (B1) */
+        .note-editor-date {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .note-editor-title {
+            width: 100%;
+            border: none;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 15px 0;
+            font-size: 24px;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .note-editor-title:focus {
+            border-bottom-color: #667eea;
+        }
+
+        .note-editor-content {
+            width: 100%;
+            border: none;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 20px 0;
+            font-size: 16px;
+            line-height: 1.8;
+            outline: none;
+            resize: none;
+            min-height: 300px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .note-editor-content:focus {
+            border-bottom-color: #667eea;
+        }
+
+        .note-editor-tags {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .note-editor-colors {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-option.active {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+
+        /* Note Viewer (B2) */
+        .note-viewer-info {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .note-viewer-info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .note-viewer-content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+            white-space: pre-wrap;
+        }
+
+        /* Popup Overlay */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 4000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .popup-overlay.active {
+            display: flex;
+        }
+
+        .popup-container {
+            background: white;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .popup-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .popup-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .popup-close {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .popup-content {
+            padding: 20px;
+        }
+
+        .popup-footer {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .popup-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .popup-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .popup-btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .popup-btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .popup-btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Task Goals List */
+        .goals-list {
+            margin-top: 15px;
+        }
+
+        .goal-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .goal-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .goal-text {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .goal-text.completed {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        .goal-delete {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: #ff4444;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-goal-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .add-goal-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        /* Tag Selection */
+        .tag-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tag-option {
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: white;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .tag-option:hover {
+            transform: scale(1.05);
+        }
+
+        .tag-option.selected {
+            border-color: #333;
+        }
+
+        .tag-count {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        /* Folder Items */
+        .folder-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .folder-item {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .folder-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .folder-item-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .folder-icon {
+            font-size: 32px;
+        }
+
+        .folder-item-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .folder-item-count {
+            font-size: 14px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        /* Color Picker */
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-picker-option {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-picker-option.selected {
+            border-color: #333;
+            transform: scale(1.15);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state-text {
+            font-size: 18px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .empty-state-subtext {
+            font-size: 14px;
+            color: #bbb;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 15px;
+            background: white;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+
+        /* Confirmation Dialog */
+        .confirm-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .confirm-dialog.active {
+            display: flex;
+        }
+
+        .confirm-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .confirm-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .confirm-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-btn-danger {
+            background: #ff4444;
+            color: white;
+        }
+
+        .confirm-btn-cancel {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        /* Date Input Custom */
+        .date-input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .date-input-container:hover {
+            border-color: #667eea;
+        }
+
+        .date-input-icon {
+            font-size: 18px;
+            color: #667eea;
+        }
+
+        .date-input-text {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .note-list,
+            .task-list,
+            .folder-list {
+                grid-template-columns: 1fr;
+            }
+
+            .menu-sidebar {
+                width: 85%;
+                max-width: 300px;
+            }
+
+            .popup-container {
+                max-width: 100%;
+            }
+        }
+
+        /* Animation */
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .note-item,
+        .task-item,
+        .folder-item {
+            animation: slideIn 0.3s ease;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 6000;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.active {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Note Colors */
+        .note-color-pink { background: #ffe4e6; }
+        .note-color-blue { background: #dbeafe; }
+        .note-color-green { background: #dcfce7; }
+        .note-color-yellow { background: #fef3c7; }
+        .note-color-purple { background: #f3e8ff; }
+        .note-color-orange { background: #ffedd5; }
+
+        /* Tag Colors */
+        .tag-color-1 { background: #3b82f6; }
+        .tag-color-2 { background: #10b981; }
+        .tag-color-3 { background: #f59e0b; }
+        .tag-color-4 { background: #ef4444; }
+        .tag-color-5 { background: #8b5cf6; }
+        .tag-color-6 { background: #ec4899; }
+
+        /* Folder Colors */
+        .folder-color-1 { color: #3b82f6; }
+        .folder-color-2 { color: #10b981; }
+        .folder-color-3 { color: #f59e0b; }
+        .folder-color-4 { color: #ef4444; }
+        .folder-color-5 { color: #8b5cf6; }
+        .folder-color-6 { color: #ec4899; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        <div class="header-title">Notes</div>
+        <button class="storage-btn" onclick="openStorage()">📁</button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Notes Page -->
+        <div id="notesPage" class="page-content">
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="🔍 Tìm kiếm ghi chú..." oninput="searchNotes(this.value)">
+            </div>
+            <div id="notesList" class="note-list"></div>
+        </div>
+
+        <!-- Tasks Page -->
+        <div id="tasksPage" class="page-content hidden">
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="🔍 Tìm kiếm nhiệm vụ..." oninput="searchTasks(this.value)">
+            </div>
+            <div id="tasksList" class="task-list"></div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="openCreateDialog()">+</button>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchPage('notes')">
+            <div class="nav-item-icon">📝</div>
+            <div class="nav-item-label">Ghi chú</div>
+        </button>
+        <button class="nav-item" onclick="switchPage('tasks')">
+            <div class="nav-item-icon">✅</div>
+            <div class="nav-item-label">Nhiệm vụ</div>
+        </button>
+    </div>
+
+    <!-- Menu Overlay -->
+    <div class="menu-overlay" onclick="toggleMenu()"></div>
+    <div class="menu-sidebar">
+        <div class="menu-header">
+            <div class="menu-title">MENU</div>
+            <button class="menu-close" onclick="toggleMenu()">×</button>
+        </div>
+        <div class="menu-items">
+            <button class="menu-item" onclick="switchPage('notes'); toggleMenu();">
+                <span class="menu-item-icon">🏠</span>
+                <span>Trang chủ</span>
+            </button>
+            <button class="menu-item" onclick="switchPage('tasks'); toggleMenu();">
+                <span class="menu-item-icon">✅</span>
+                <span>Nhiệm vụ</span>
+            </button>
+            <button class="menu-item" onclick="openStorage(); toggleMenu();">
+                <span class="menu-item-icon">📁</span>
+                <span>Lưu trữ</span>
+            </button>
+            <button class="menu-item" onclick="openTagsView(); toggleMenu();">
+                <span class="menu-item-icon">🏷️</span>
+                <span>Thẻ tag</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Note Editor (B1) -->
+    <div id="noteEditor" class="fullscreen-overlay">
+        <div class="fullscreen-header">
+            <div class="fullscreen-header-left">
+                <button class="header-btn header-btn-secondary" onclick="closeNoteEditor()">×</button>
+            </div>
+            <div class="fullscreen-header-right">
+                <button class="header-btn header-btn-secondary" onclick="openTagSelector()">🏷️+</button>
+                <button class="header-btn" onclick="saveNote()">💾 Lưu</button>
+            </div>
+        </div>
+        <div class="fullscreen-content" id="noteEditorContent">
+            <div class="note-editor-date">
+                📅 <span id="noteEditorDate"></span>
+            </div>
+            <input type="text" class="note-editor-title" id="noteEditorTitle" placeholder="Tiêu đề...">
+            <textarea class="note-editor-content" id="noteEditorContentText" placeholder="Nội dung..."></textarea>
+            <div class="note-editor-tags" id="noteEditorTags"></div>
+            <div class="note-editor-colors">
+                <div class="color-option note-color-pink active" data-color="pink" onclick="selectNoteColor('pink')"></div>
+                <div class="color-option note-color-blue" data-color="blue" onclick="selectNoteColor('blue')"></div>
+                <div class="color-option note-color-green" data-color="green" onclick="selectNoteColor('green')"></div>
+                <div class="color-option note-color-yellow" data-color="yellow" onclick="selectNoteColor('yellow')"></div>
+                <div class="color-option note-color-purple" data-color="purple" onclick="selectNoteColor('purple')"></div>
+                <div class="color-option note-color-orange" data-color="orange" onclick="selectNoteColor('orange')"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note Viewer (B2) -->
+    <div id="noteViewer" class="fullscreen-overlay">
+        <div class="fullscreen-header">
+            <div class="fullscreen-header-left">
+                <button class="header-btn header-btn-secondary" onclick="closeNoteViewer()">←</button>
+                <div id="noteViewerTitle" style="font-size: 18px; font-weight: 600;"></div>
+            </div>
+            <div class="fullscreen-header-right">
+                <button class="header-btn header-btn-secondary" onclick="editCurrentNote()">✏️ Sửa</button>
+                <button class="header-btn header-btn-secondary" style="background: #ff4444; color: white;" onclick="deleteCurrentNote()">🗑️ Xóa</button>
+            </div>
+        </div>
+        <div class="fullscreen-content" id="noteViewerContent">
+            <div class="note-viewer-info">
+                <div class="note-viewer-info-row">
+                    <span>📅 Ngày:</span>
+                    <span id="noteViewerDate"></span>
+                </div>
+                <div class="note-viewer-info-row">
+                    <span>🏷️ Tag:</span>
+                    <div id="noteViewerTags"></div>
+                </div>
+            </div>
+            <div class="note-viewer-content" id="noteViewerContentText"></div>
+        </div>
+    </div>
+
+    <!-- Task Editor Popup (C1) -->
+    <div id="taskEditorPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <div class="popup-title">Chỉnh sửa nhiệm vụ</div>
+                <button class="popup-close" onclick="closeTaskEditor()">×</button>
+            </div>
+            <div class="popup-content">
+                <div class="form-group">
+                    <label class="form-label">Tên nhiệm vụ:</label>
+                    <input type="text" class="form-input" id="taskEditorName" placeholder="Nhập tên nhiệm vụ...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mô tả:</label>
+                    <textarea class="form-textarea" id="taskEditorDesc" placeholder="Nhập mô tả..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deadline:</label>
+                    <input type="date" class="form-input" id="taskEditorDeadline">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Danh sách mục tiêu:</label>
+                    <div id="taskEditorGoals" class="goals-list"></div>
+                    <button class="add-goal-btn" onclick="addGoalInput()">+ Thêm mục tiêu</button>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn popup-btn-secondary" onclick="closeTaskEditor()">Hủy</button>
+                <button class="popup-btn popup-btn-primary" onclick="saveTask()">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Viewer Popup (C2) -->
+    <div id="taskViewerPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <div class="popup-title" id="taskViewerName"></div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="popup-close" onclick="editCurrentTask()">✏️</button>
+                    <button class="popup-close" onclick="closeTaskViewer()">×</button>
+                </div>
+            </div>
+            <div class="popup-content">
+                <div class="form-group">
+                    <label class="form-label">Mô tả:</label>
+                    <div id="taskViewerDesc" style="padding: 12px; background: #f8f8f8; border-radius: 10px;"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Deadline:</label>
+                    <div id="taskViewerDeadline" style="padding: 12px; background: #f8f8f8; border-radius: 10px;"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tiến độ:</label>
+                    <div class="task-progress-container">
+                        <div class="task-progress-bar">
+                            <div class="task-progress-fill" id="taskViewerProgressBar"></div>
+                        </div>
+                        <div class="task-progress-text" id="taskViewerProgressText"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mục tiêu:</label>
+                    <div id="taskViewerGoals" class="goals-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tag Selector Popup (T1) -->
+    <div id="tagSelectorPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <div class="popup-title">Chọn thẻ tag</div>
+                <button class="popup-close" onclick="closeTagSelector()">×</button>
+            </div>
+            <div class="popup-content">
+                <div id="tagsList" class="tag-list"></div>
+                <button class="add-goal-btn" onclick="createNewTag()">+ Tạo tag mới</button>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn popup-btn-primary" onclick="closeTagSelector()">Xong</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Tag Popup -->
+    <div id="createTagPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <div class="popup-title">Tạo tag mới</div>
+                <button class="popup-close" onclick="closeCreateTag()">×</button>
+            </div>
+            <div class="popup-content">
+                <div class="form-group">
+                    <label class="form-label">Tên tag:</label>
+                    <input type="text" class="form-input" id="newTagName" placeholder="Nhập tên tag...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Chọn màu:</label>
+                    <div class="color-picker">
+                        <div class="color-picker-option tag-color-1 selected" data-color="1" onclick="selectTagColor('1')"></div>
+                        <div class="color-picker-option tag-color-2" data-color="2" onclick="selectTagColor('2')"></div>
+                        <div class="color-picker-option tag-color-3" data-color="3" onclick="selectTagColor('3')"></div>
+                        <div class="color-picker-option tag-color-4" data-color="4" onclick="selectTagColor('4')"></div>
+                        <div class="color-picker-option tag-color-5" data-color="5" onclick="selectTagColor('5')"></div>
+                        <div class="color-picker-option tag-color-6" data-color="6" onclick="selectTagColor('6')"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn popup-btn-secondary" onclick="closeCreateTag()">Hủy</button>
+                <button class="popup-btn popup-btn-primary" onclick="saveNewTag()">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Storage View (H1) -->
+    <div id="storageView" class="fullscreen-overlay">
+        <div class="fullscreen-header">
+            <div class="fullscreen-header-left">
+                <button class="header-btn header-btn-secondary" onclick="closeStorage()">←</button>
+                <div style="font-size: 18px; font-weight: 600;">Lưu trữ</div>
+            </div>
+            <div class="fullscreen-header-right">
+                <button class="header-btn" onclick="openCreateFolder()">+ Thêm thư mục</button>
+            </div>
+        </div>
+        <div class="fullscreen-content">
+            <div id="foldersList" class="folder-list"></div>
+        </div>
+    </div>
+
+    <!-- Create Folder Popup (H2) -->
+    <div id="createFolderPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <div class="popup-title">Tạo thư mục mới</div>
+                <button class="popup-close" onclick="closeCreateFolder()">×</button>
+            </div>
+            <div class="popup-content">
+                <div class="form-group">
+                    <label class="form-label">Tiêu đề:</label>
+                    <input type="text" class="form-input" id="folderTitle" placeholder="Nhập tiêu đề...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mô tả:</label>
+                    <textarea class="form-textarea" id="folderDesc" placeholder="Nhập mô tả..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Chọn màu/icon:</label>
+                    <div class="color-picker">
+                        <div class="color-picker-option folder-color-1 selected" data-color="1" onclick="selectFolderColor('1')" style="border: 2px solid; display: flex; align-items: center; justify-content: center; font-size: 20px;">📁</div>
+                        <div class="color-picker-option folder-color-2" data-color="2" onclick="selectFolderColor('2')" style="border: 2px solid; display: flex; align-items: center; justify-content: center; font-size: 20px;">📁</div>
+                        <div class="color-picker-option folder-color-3" data-color="3" onclick="selectFolderColor('3')" style="border: 2px solid; display: flex; align-items: center; justify-content: center; font-size: 20px;">📁</div>
+                        <div class="color-picker-option folder-color-4" data-color="4" onclick="selectFolderColor('4')" style="border: 2px solid; display: flex; align-items: center; justify-content: center; font-size: 20px;">📁</div>
+                        <div class="color-picker-option folder-color-5" data-color="5" onclick="selectFolderColor('5')" style="border: 2px solid; display: flex; align-items: center; justify-content: center; font-size: 20px;">📁</div>
+                        <div class="color-picker-option folder-color-6" data-color="6" onclick="selectFolderColor('6')" style="border: 2px solid; display: flex; align-items: center; justify-content: center; font-size: 20px;">📁</div>
+                    </div>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-btn popup-btn-secondary" onclick="closeCreateFolder()">Hủy</button>
+                <button class="popup-btn popup-btn-primary" onclick="saveFolder()">Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Folder Content View (H3) -->
+    <div id="folderContentView" class="fullscreen-overlay">
+        <div class="fullscreen-header">
+            <div class="fullscreen-header-left">
+                <button class="header-btn header-btn-secondary" onclick="closeFolderContent()">←</button>
+                <div id="folderContentTitle" style="font-size: 18px; font-weight: 600;"></div>
+            </div>
+            <div class="fullscreen-header-right">
+                <button class="header-btn" onclick="addNoteToFolder()">+ Thêm ghi chú</button>
+                <button class="header-btn header-btn-secondary" onclick="deleteFolderConfirm()">⋮</button>
+            </div>
+        </div>
+        <div class="fullscreen-content">
+            <div id="folderNotesList" class="note-list"></div>
+        </div>
+    </div>
+
+    <!-- Add Note to Folder Popup -->
+    <div id="addNoteToFolderPopup" class="popup-overlay">
+        <div class="popup-container">
+            <div class="popup-header">
+                <div class="popup-title">Thêm ghi chú vào thư mục</div>
+                <button class="popup-close" onclick="closeAddNoteToFolder()">×</button>
+            </div>
+            <div class="popup-content">
+                <div id="availableNotesList" style="max-height: 400px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tags View (T2) -->
+    <div id="tagsView" class="fullscreen-overlay">
+        <div class="fullscreen-header">
+            <div class="fullscreen-header-left">
+                <button class="header-btn header-btn-secondary" onclick="closeTagsView()">←</button>
+                <div id="tagsViewTitle" style="font-size: 18px; font-weight: 600;"></div>
+            </div>
+        </div>
+        <div class="fullscreen-content">
+            <div id="taggedNotesList" class="note-list"></div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog -->
+    <div id="confirmDialog" class="confirm-dialog">
+        <div class="confirm-content">
+            <div class="confirm-icon">⚠️</div>
+            <div class="confirm-text" id="confirmText"></div>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-btn-cancel" onclick="closeConfirm()">Hủy</button>
+                <button class="confirm-btn confirm-btn-danger" id="confirmButton">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Global State
+        let currentPage = 'notes';
+        let currentNote = null;
+        let currentTask = null;
+        let currentFolder = null;
+        let editingNoteId = null;
+        let editingTaskId = null;
+        let editingFolderId = null;
+        let selectedNoteColor = 'pink';
+        let selectedTagColor = '1';
+        let selectedFolderColor = '1';
+        let selectedTags = [];
+        let confirmCallback = null;
+
+        // Data Storage
+        const DB = {
+            notes: [],
+            tasks: [],
+            folders: [],
+            tags: []
+        };
+
+        // Initialize App
+        function initApp() {
+            loadData();
+            renderNotes();
+            renderTasks();
+            updateDateTime();
+            setInterval(updateDateTime, 60000);
+        }
+
+        // Data Management
+        function loadData() {
+            const stored = localStorage.getItem('notesAppData');
+            if (stored) {
+                const data = JSON.parse(stored);
+                DB.notes = data.notes || [];
+                DB.tasks = data.tasks || [];
+                DB.folders = data.folders || [];
+                DB.tags = data.tags || [];
+            } else {
+                // Initialize with sample data
+                DB.tags = [
+                    { id: Date.now() + 1, name: 'Công việc', color: '1', count: 0 },
+                    { id: Date.now() + 2, name: 'Cá nhân', color: '2', count: 0 },
+                    { id: Date.now() + 3, name: 'Ý tưởng', color: '3', count: 0 }
+                ];
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('notesAppData', JSON.stringify(DB));
+        }
+
+        function generateId() {
+            return Date.now() + Math.random();
+        }
+
+        // Date and Time
+        function updateDateTime() {
+            const now = new Date();
+            const dateStr = formatDate(now);
+            const editorDate = document.getElementById('noteEditorDate');
+            if (editorDate) {
+                editorDate.textContent = dateStr;
+            }
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        // Navigation
+        function switchPage(page) {
+            currentPage = page;
+            
+            // Update bottom nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Update pages
+            if (page === 'notes') {
+                document.getElementById('notesPage').classList.remove('hidden');
+                document.getElementById('tasksPage').classList.add('hidden');
+                document.querySelectorAll('.nav-item')[0].classList.add('active');
+                renderNotes();
+            } else if (page === 'tasks') {
+                document.getElementById('notesPage').classList.add('hidden');
+                document.getElementById('tasksPage').classList.remove('hidden');
+                document.querySelectorAll('.nav-item')[1].classList.add('active');
+                renderTasks();
+            }
+        }
+
+        function toggleMenu() {
+            const overlay = document.querySelector('.menu-overlay');
+            const sidebar = document.querySelector('.menu-sidebar');
+            overlay.classList.toggle('active');
+            sidebar.classList.toggle('active');
+        }
+
+        // Notes Functions
+        function renderNotes(filteredNotes = null) {
+            const notesList = document.getElementById('notesList');
+            const notes = filteredNotes || DB.notes;
+            
+            if (notes.length === 0) {
+                notesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">Chưa có ghi chú nào</div>
+                        <div class="empty-state-subtext">Bấm nút + để tạo ghi chú mới</div>
+                    </div>
+                `;
+                return;
+            }
+
+            notesList.innerHTML = notes.map(note => `
+                <div class="note-item note-color-${note.color}" onclick="viewNote('${note.id}')">
+                    <div class="note-item-title">${note.title || 'Không có tiêu đề'}</div>
+                    <div class="note-item-content">${note.content}</div>
+                    <div class="note-item-tags">
+                        ${note.tags.map(tagId => {
+                            const tag = DB.tags.find(t => t.id === tagId);
+                            return tag ? `<span class="tag-badge tag-color-${tag.color}">${tag.name}</span>` : '';
+                        }).join('')}
+                    </div>
+                    <div class="note-item-date">📅 ${formatDate(note.date)}</div>
+                </div>
+            `).join('');
+        }
+
+        function searchNotes(query) {
+            if (!query.trim()) {
+                renderNotes();
+                return;
+            }
+            
+            const filtered = DB.notes.filter(note => 
+                note.title.toLowerCase().includes(query.toLowerCase()) ||
+                note.content.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            renderNotes(filtered);
+        }
+
+        function openCreateDialog() {
+            if (currentPage === 'notes') {
+                openNoteEditor();
+            } else if (currentPage === 'tasks') {
+                openTaskEditor();
+            }
+        }
+
+        function openNoteEditor(noteId = null) {
+            editingNoteId = noteId;
+            selectedTags = [];
+            
+            if (noteId) {
+                const note = DB.notes.find(n => n.id === noteId);
+                if (note) {
+                    document.getElementById('noteEditorTitle').value = note.title;
+                    document.getElementById('noteEditorContentText').value = note.content;
+                    selectedNoteColor = note.color;
+                    selectedTags = [...note.tags];
+                    
+                    // Update color selection
+                    document.querySelectorAll('.color-option').forEach(opt => {
+                        opt.classList.remove('active');
+                        if (opt.dataset.color === note.color) {
+                            opt.classList.add('active');
+                        }
+                    });
+                    
+                    updateEditorTags();
+                }
+            } else {
+                document.getElementById('noteEditorTitle').value = '';
+                document.getElementById('noteEditorContentText').value = '';
+                selectedNoteColor = 'pink';
+                document.querySelectorAll('.color-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                document.querySelector('.color-option[data-color="pink"]').classList.add('active');
+                updateEditorTags();
+            }
+            
+            document.getElementById('noteEditor').classList.add('active');
+            document.getElementById('noteEditorContent').style.background = getNoteColorHex(selectedNoteColor);
+        }
+
+        function closeNoteEditor() {
+            document.getElementById('noteEditor').classList.remove('active');
+            editingNoteId = null;
+        }
+
+        function selectNoteColor(color) {
+            selectedNoteColor = color;
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.color === color) {
+                    opt.classList.add('active');
+                }
+            });
+            document.getElementById('noteEditorContent').style.background = getNoteColorHex(color);
+        }
+
+        function getNoteColorHex(color) {
+            const colors = {
+                pink: '#ffe4e6',
+                blue: '#dbeafe',
+                green: '#dcfce7',
+                yellow: '#fef3c7',
+                purple: '#f3e8ff',
+                orange: '#ffedd5'
+            };
+            return colors[color] || colors.pink;
+        }
+
+        function saveNote() {
+            const title = document.getElementById('noteEditorTitle').value;
+            const content = document.getElementById('noteEditorContentText').value;
+            
+            if (!title.trim() && !content.trim()) {
+                showToast('Vui lòng nhập tiêu đề hoặc nội dung');
+                return;
+            }
+            
+            if (editingNoteId) {
+                const note = DB.notes.find(n => n.id === editingNoteId);
+                if (note) {
+                    // Remove old tag counts
+                    note.tags.forEach(tagId => {
+                        const tag = DB.tags.find(t => t.id === tagId);
+                        if (tag) tag.count--;
+                    });
+                    
+                    note.title = title;
+                    note.content = content;
+                    note.color = selectedNoteColor;
+                    note.tags = [...selectedTags];
+                    note.modifiedDate = new Date();
+                }
+            } else {
+                const newNote = {
+                    id: generateId(),
+                    title: title,
+                    content: content,
+                    date: new Date(),
+                    modifiedDate: new Date(),
+                    tags: [...selectedTags],
+                    color: selectedNoteColor
+                };
+                DB.notes.unshift(newNote);
+            }
+            
+            // Update tag counts
+            selectedTags.forEach(tagId => {
+                const tag = DB.tags.find(t => t.id === tagId);
+                if (tag) tag.count++;
+            });
+            
+            saveData();
+            renderNotes();
+            closeNoteEditor();
+            showToast('Đã lưu ghi chú');
+        }
+
+        function viewNote(noteId) {
+            const note = DB.notes.find(n => n.id == noteId);
+            if (!note) return;
+            
+            currentNote = note;
+            document.getElementById('noteViewerTitle').textContent = note.title || 'Không có tiêu đề';
+            document.getElementById('noteViewerDate').textContent = formatDate(note.date);
+            document.getElementById('noteViewerContentText').textContent = note.content;
+            
+            const tagsHtml = note.tags.map(tagId => {
+                const tag = DB.tags.find(t => t.id === tagId);
+                return tag ? `<span class="tag-badge tag-color-${tag.color}">${tag.name}</span>` : '';
+            }).join('');
+            document.getElementById('noteViewerTags').innerHTML = tagsHtml || 'Không có tag';
+            
+            document.getElementById('noteViewer').classList.add('active');
+        }
+
+        function closeNoteViewer() {
+            document.getElementById('noteViewer').classList.remove('active');
+            currentNote = null;
+        }
+
+        function editCurrentNote() {
+            if (currentNote) {
+                closeNoteViewer();
+                openNoteEditor(currentNote.id);
+            }
+        }
+
+        function deleteCurrentNote() {
+            if (!currentNote) return;
+            
+            showConfirm('Bạn có chắc muốn xóa ghi chú này?', () => {
+                // Remove from tags count
+                currentNote.tags.forEach(tagId => {
+                    const tag = DB.tags.find(t => t.id === tagId);
+                    if (tag) tag.count--;
+                });
+                
+                // Remove from folders
+                DB.folders.forEach(folder => {
+                    folder.noteIds = folder.noteIds.filter(id => id !== currentNote.id);
+                });
+                
+                DB.notes = DB.notes.filter(n => n.id !== currentNote.id);
+                saveData();
+                renderNotes();
+                closeNoteViewer();
+                showToast('Đã xóa ghi chú');
+            });
+        }
+
+        // Tasks Functions
+        function renderTasks(filteredTasks = null) {
+            const tasksList = document.getElementById('tasksList');
+            const tasks = filteredTasks || DB.tasks;
+            
+            if (tasks.length === 0) {
+                tasksList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <div class="empty-state-text">Chưa có nhiệm vụ nào</div>
+                        <div class="empty-state-subtext">Bấm nút + để tạo nhiệm vụ mới</div>
+                    </div>
+                `;
+                return;
+            }
+
+            tasksList.innerHTML = tasks.map(task => {
+                const progress = calculateProgress(task);
+                return `
+                    <div class="task-item" onclick="viewTask('${task.id}')">
+                        <div class="task-item-title">${task.name}</div>
+                        <div class="note-item-content">${task.description}</div>
+                        <div class="task-progress-container">
+                            <div class="task-progress-bar">
+                                <div class="task-progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            <div class="task-progress-text">${progress}% hoàn thành</div>
+                        </div>
+                        <div class="task-item-date">📅 ${formatDate(task.deadline)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function searchTasks(query) {
+            if (!query.trim()) {
+                renderTasks();
+                return;
+            }
+            
+            const filtered = DB.tasks.filter(task => 
+                task.name.toLowerCase().includes(query.toLowerCase()) ||
+                task.description.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            renderTasks(filtered);
+        }
+
+        function calculateProgress(task) {
+            if (!task.goals || task.goals.length === 0) return 0;
+            const completed = task.goals.filter(g => g.completed).length;
+            return Math.round((completed / task.goals.length) * 100);
+        }
+
+        function openTaskEditor(taskId = null) {
+            editingTaskId = taskId;
+            
+            if (taskId) {
+                const task = DB.tasks.find(t => t.id === taskId);
+                if (task) {
+                    document.getElementById('taskEditorName').value = task.name;
+                    document.getElementById('taskEditorDesc').value = task.description;
+                    document.getElementById('taskEditorDeadline').value = task.deadline.split('T')[0];
+                    renderTaskEditorGoals(task.goals);
+                }
+            } else {
+                document.getElementById('taskEditorName').value = '';
+                document.getElementById('taskEditorDesc').value = '';
+                document.getElementById('taskEditorDeadline').value = '';
+                renderTaskEditorGoals([]);
+            }
+            
+            document.getElementById('taskEditorPopup').classList.add('active');
+        }
+
+        function closeTaskEditor() {
+            document.getElementById('taskEditorPopup').classList.remove('active');
+            editingTaskId = null;
+        }
+
+        function renderTaskEditorGoals(goals = []) {
+            const goalsContainer = document.getElementById('taskEditorGoals');
+            
+            if (goals.length === 0) {
+                goalsContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Chưa có mục tiêu nào</div>';
+                return;
+            }
+            
+            goalsContainer.innerHTML = goals.map((goal, index) => `
+                <div class="goal-item">
+                    <input type="checkbox" class="goal-checkbox" ${goal.completed ? 'checked' : ''} disabled>
+                    <input type="text" class="form-input" style="margin: 0;" value="${goal.text}" onchange="updateGoalText(${index}, this.value)">
+                    <button class="goal-delete" onclick="deleteGoal(${index})">×</button>
+                </div>
+            `).join('');
+        }
+
+        let tempGoals = [];
+
+        function addGoalInput() {
+            const goalText = prompt('Nhập tên mục tiêu:');
+            if (goalText && goalText.trim()) {
+                if (!tempGoals) tempGoals = [];
+                tempGoals.push({ text: goalText.trim(), completed: false });
+                renderTaskEditorGoals(tempGoals);
+            }
+        }
+
+        function updateGoalText(index, text) {
+            if (tempGoals && tempGoals[index]) {
+                tempGoals[index].text = text;
+            }
+        }
+
+        function deleteGoal(index) {
+            if (tempGoals) {
+                tempGoals.splice(index, 1);
+                renderTaskEditorGoals(tempGoals);
+            }
+        }
+
+        function saveTask() {
+            const name = document.getElementById('taskEditorName').value;
+            const description = document.getElementById('taskEditorDesc').value;
+            const deadline = document.getElementById('taskEditorDeadline').value;
+            
+            if (!name.trim()) {
+                showToast('Vui lòng nhập tên nhiệm vụ');
+                return;
+            }
+            
+            if (!deadline) {
+                showToast('Vui lòng chọn deadline');
+                return;
+            }
+            
+            if (editingTaskId) {
+                const task = DB.tasks.find(t => t.id === editingTaskId);
+                if (task) {
+                    task.name = name;
+                    task.description = description;
+                    task.deadline = new Date(deadline);
+                    task.goals = tempGoals || task.goals;
+                }
+            } else {
+                const newTask = {
+                    id: generateId(),
+                    name: name,
+                    description: description,
+                    deadline: new Date(deadline),
+                    goals: tempGoals || [],
+                    createdDate: new Date()
+                };
+                DB.tasks.unshift(newTask);
+            }
+            
+            tempGoals = [];
+            saveData();
+            renderTasks();
+            closeTaskEditor();
+            showToast('Đã lưu nhiệm vụ');
+        }
+
+        function viewTask(taskId) {
+            const task = DB.tasks.find(t => t.id == taskId);
+            if (!task) return;
+            
+            currentTask = task;
+            document.getElementById('taskViewerName').textContent = task.name;
+            document.getElementById('taskViewerDesc').textContent = task.description || 'Không có mô tả';
+            document.getElementById('taskViewerDeadline').textContent = formatDate(task.deadline);
+            
+            const progress = calculateProgress(task);
+            document.getElementById('taskViewerProgressBar').style.width = progress + '%';
+            document.getElementById('taskViewerProgressText').textContent = `${progress}% hoàn thành (${task.goals.filter(g => g.completed).length}/${task.goals.length} mục tiêu)`;
+            
+            renderTaskViewerGoals(task.goals);
+            document.getElementById('taskViewerPopup').classList.add('active');
+        }
+
+        function closeTaskViewer() {
+            document.getElementById('taskViewerPopup').classList.remove('active');
+            currentTask = null;
+        }
+
+        function renderTaskViewerGoals(goals) {
+            const goalsContainer = document.getElementById('taskViewerGoals');
+            
+            if (goals.length === 0) {
+                goalsContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Chưa có mục tiêu nào</div>';
+                return;
+            }
+            
+            goalsContainer.innerHTML = goals.map((goal, index) => `
+                <div class="goal-item">
+                    <input type="checkbox" class="goal-checkbox" ${goal.completed ? 'checked' : ''} onchange="toggleGoalComplete(${index})">
+                    <div class="goal-text ${goal.completed ? 'completed' : ''}">${goal.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function toggleGoalComplete(index) {
+            if (currentTask && currentTask.goals[index]) {
+                currentTask.goals[index].completed = !currentTask.goals[index].completed;
+                saveData();
+                
+                const progress = calculateProgress(currentTask);
+                document.getElementById('taskViewerProgressBar').style.width = progress + '%';
+                document.getElementById('taskViewerProgressText').textContent = `${progress}% hoàn thành (${currentTask.goals.filter(g => g.completed).length}/${currentTask.goals.length} mục tiêu)`;
+                
+                renderTaskViewerGoals(currentTask.goals);
+                renderTasks();
+            }
+        }
+
+        function editCurrentTask() {
+            if (currentTask) {
+                tempGoals = [...currentTask.goals];
+                closeTaskViewer();
+                openTaskEditor(currentTask.id);
+            }
+        }
+
+        // Tags Functions
+        function openTagSelector() {
+            renderTagsList();
+            document.getElementById('tagSelectorPopup').classList.add('active');
+        }
+
+        function closeTagSelector() {
+            document.getElementById('tagSelectorPopup').classList.remove('active');
+            updateEditorTags();
+        }
+
+        function renderTagsList() {
+            const tagsList = document.getElementById('tagsList');
+            
+            if (DB.tags.length === 0) {
+                tagsList.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">Chưa có tag nào</div>';
+                return;
+            }
+            
+            tagsList.innerHTML = DB.tags.map(tag => `
+                <div class="tag-option tag-color-${tag.color} ${selectedTags.includes(tag.id) ? 'selected' : ''}" onclick="toggleTagSelection('${tag.id}')">
+                    ${tag.name}
+                    <div class="tag-count">(${tag.count})</div>
+                </div>
+            `).join('');
+        }
+
+        function toggleTagSelection(tagId) {
+            const numTagId = parseFloat(tagId);
+            const index = selectedTags.indexOf(numTagId);
+            
+            if (index > -1) {
+                selectedTags.splice(index, 1);
+            } else {
+                selectedTags.push(numTagId);
+            }
+            
+            renderTagsList();
+        }
+
+        function updateEditorTags() {
+            const tagsContainer = document.getElementById('noteEditorTags');
+            
+            if (selectedTags.length === 0) {
+                tagsContainer.innerHTML = '';
+                return;
+            }
+            
+            tagsContainer.innerHTML = selectedTags.map(tagId => {
+                const tag = DB.tags.find(t => t.id === tagId);
+                return tag ? `<span class="tag-badge tag-color-${tag.color}">${tag.name}</span>` : '';
+            }).join('');
+        }
+
+        function createNewTag() {
+            document.getElementById('createTagPopup').classList.add('active');
+        }
+
+        function closeCreateTag() {
+            document.getElementById('createTagPopup').classList.remove('active');
+            document.getElementById('newTagName').value = '';
+            selectedTagColor = '1';
+            document.querySelectorAll('#createTagPopup .color-picker-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            document.querySelector('#createTagPopup .color-picker-option[data-color="1"]').classList.add('selected');
+        }
+
+        function selectTagColor(color) {
+            selectedTagColor = color;
+            document.querySelectorAll('#createTagPopup .color-picker-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.dataset.color === color) {
+                    opt.classList.add('selected');
+                }
+            });
+        }
+
+        function saveNewTag() {
+            const name = document.getElementById('newTagName').value;
+            
+            if (!name.trim()) {
+                showToast('Vui lòng nhập tên tag');
+                return;
+            }
+            
+            const newTag = {
+                id: generateId(),
+                name: name.trim(),
+                color: selectedTagColor,
+                count: 0
+            };
+            
+            DB.tags.push(newTag);
+            saveData();
+            closeCreateTag();
+            renderTagsList();
+            showToast('Đã tạo tag mới');
+        }
+
+        function openTagsView(tagId = null) {
+            if (!tagId && DB.tags.length > 0) {
+                tagId = DB.tags[0].id;
+            }
+            
+            if (!tagId) {
+                showToast('Chưa có tag nào');
+                return;
+            }
+            
+            const tag = DB.tags.find(t => t.id === tagId);
+            if (!tag) return;
+            
+            document.getElementById('tagsViewTitle').textContent = `Tag: ${tag.name}`;
+            
+            const taggedNotes = DB.notes.filter(note => note.tags.includes(tag.id));
+            const taggedNotesList = document.getElementById('taggedNotesList');
+            
+            if (taggedNotes.length === 0) {
+                taggedNotesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🏷️</div>
+                        <div class="empty-state-text">Chưa có ghi chú nào với tag này</div>
+                    </div>
+                `;
+            } else {
+                taggedNotesList.innerHTML = taggedNotes.map(note => `
+                    <div class="note-item note-color-${note.color}" onclick="viewNote('${note.id}'); closeTagsView();">
+                        <div class="note-item-title">${note.title || 'Không có tiêu đề'}</div>
+                        <div class="note-item-content">${note.content}</div>
+                        <div class="note-item-date">📅 ${formatDate(note.date)}</div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('tagsView').classList.add('active');
+        }
+
+        function closeTagsView() {
+            document.getElementById('tagsView').classList.remove('active');
+        }
+
+        // Folders Functions
+        function openStorage() {
+            renderFolders();
+            document.getElementById('storageView').classList.add('active');
+        }
+
+        function closeStorage() {
+            document.getElementById('storageView').classList.remove('active');
+        }
+
+        function renderFolders() {
+            const foldersList = document.getElementById('foldersList');
+            
+            if (DB.folders.length === 0) {
+                foldersList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📁</div>
+                        <div class="empty-state-text">Chưa có thư mục nào</div>
+                        <div class="empty-state-subtext">Bấm + để tạo thư mục mới</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            foldersList.innerHTML = DB.folders.map(folder => `
+                <div class="folder-item" onclick="openFolderContent('${folder.id}')">
+                    <div class="folder-item-header">
+                        <div class="folder-icon folder-color-${folder.color}">📁</div>
+                        <div class="folder-item-title">${folder.title}</div>
+                    </div>
+                    <div class="note-item-content">${folder.description || 'Không có mô tả'}</div>
+                    <div class="folder-item-count">${folder.noteIds.length} ghi chú</div>
+                </div>
+            `).join('');
+        }
+
+        function openCreateFolder(folderId = null) {
+            editingFolderId = folderId;
+            
+            if (folderId) {
+                const folder = DB.folders.find(f => f.id === folderId);
+                if (folder) {
+                    document.getElementById('folderTitle').value = folder.title;
+                    document.getElementById('folderDesc').value = folder.description;
+                    selectedFolderColor = folder.color;
+                    
+                    document.querySelectorAll('#createFolderPopup .color-picker-option').forEach(opt => {
+                        opt.classList.remove('selected');
+                        if (opt.dataset.color === folder.color) {
+                            opt.classList.add('selected');
+                        }
+                    });
+                }
+            } else {
+                document.getElementById('folderTitle').value = '';
+                document.getElementById('folderDesc').value = '';
+                selectedFolderColor = '1';
+                
+                document.querySelectorAll('#createFolderPopup .color-picker-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                document.querySelector('#createFolderPopup .color-picker-option[data-color="1"]').classList.add('selected');
+            }
+            
+            document.getElementById('createFolderPopup').classList.add('active');
+        }
+
+        function closeCreateFolder() {
+            document.getElementById('createFolderPopup').classList.remove('active');
+            editingFolderId = null;
+        }
+
+        function selectFolderColor(color) {
+            selectedFolderColor = color;
+            document.querySelectorAll('#createFolderPopup .color-picker-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.dataset.color === color) {
+                    opt.classList.add('selected');
+                }
+            });
+        }
+
+        function saveFolder() {
+            const title = document.getElementById('folderTitle').value;
+            const description = document.getElementById('folderDesc').value;
+            
+            if (!title.trim()) {
+                showToast('Vui lòng nhập tiêu đề thư mục');
+                return;
+            }
+            
+            if (editingFolderId) {
+                const folder = DB.folders.find(f => f.id === editingFolderId);
+                if (folder) {
+                    folder.title = title;
+                    folder.description = description;
+                    folder.color = selectedFolderColor;
+                }
+            } else {
+                const newFolder = {
+                    id: generateId(),
+                    title: title,
+                    description: description,
+                    noteIds: [],
+                    color: selectedFolderColor,
+                    createdDate: new Date()
+                };
+                DB.folders.push(newFolder);
+            }
+            
+            saveData();
+            renderFolders();
+            closeCreateFolder();
+            showToast('Đã lưu thư mục');
+        }
+
+        function openFolderContent(folderId) {
+            const folder = DB.folders.find(f => f.id == folderId);
+            if (!folder) return;
+            
+            currentFolder = folder;
+            document.getElementById('folderContentTitle').textContent = folder.title;
+            
+            renderFolderNotes();
+            document.getElementById('folderContentView').classList.add('active');
+        }
+
+        function closeFolderContent() {
+            document.getElementById('folderContentView').classList.remove('active');
+            currentFolder = null;
+        }
+
+        function renderFolderNotes() {
+            if (!currentFolder) return;
+            
+            const folderNotesList = document.getElementById('folderNotesList');
+            const folderNotes = DB.notes.filter(note => currentFolder.noteIds.includes(note.id));
+            
+            if (folderNotes.length === 0) {
+                folderNotesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">Thư mục chưa có ghi chú nào</div>
+                        <div class="empty-state-subtext">Bấm + để thêm ghi chú vào thư mục</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            folderNotesList.innerHTML = folderNotes.map(note => `
+                <div class="note-item note-color-${note.color}" onclick="viewNote('${note.id}')">
+                    <div class="note-item-title">${note.title || 'Không có tiêu đề'}</div>
+                    <div class="note-item-content">${note.content}</div>
+                    <div class="note-item-date">📅 ${formatDate(note.date)}</div>
+                    <button class="goal-delete" style="position: absolute; top: 10px; right: 10px;" onclick="event.stopPropagation(); removeNoteFromFolder('${note.id}')">×</button>
+                </div>
+            `).join('');
+        }
+
+        function addNoteToFolder() {
+            if (!currentFolder) return;
+            
+            const availableNotes = DB.notes.filter(note => !currentFolder.noteIds.includes(note.id));
+            const availableNotesList = document.getElementById('availableNotesList');
+            
+            if (availableNotes.length === 0) {
+                availableNotesList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <div class="empty-state-text">Không có ghi chú nào để thêm</div>
+                    </div>
+                `;
+            } else {
+                availableNotesList.innerHTML = availableNotes.map(note => `
+                    <div class="note-item note-color-${note.color}" onclick="selectNoteForFolder('${note.id}')" style="cursor: pointer; margin-bottom: 10px;">
+                        <div class="note-item-title">${note.title || 'Không có tiêu đề'}</div>
+                        <div class="note-item-content">${note.content}</div>
+                        <div class="note-item-date">📅 ${formatDate(note.date)}</div>
+                    </div>
+                `).join('');
+            }
+            
+            document.getElementById('addNoteToFolderPopup').classList.add('active');
+        }
+
+        function closeAddNoteToFolder() {
+            document.getElementById('addNoteToFolderPopup').classList.remove('active');
+        }
+
+        function selectNoteForFolder(noteId) {
+            if (!currentFolder) return;
+            
+            const numNoteId = parseFloat(noteId);
+            if (!currentFolder.noteIds.includes(numNoteId)) {
+                currentFolder.noteIds.push(numNoteId);
+                saveData();
+                renderFolderNotes();
+                closeAddNoteToFolder();
+                showToast('Đã thêm ghi chú vào thư mục');
+            }
+        }
+
+        function removeNoteFromFolder(noteId) {
+            if (!currentFolder) return;
+            
+            const numNoteId = parseFloat(noteId);
+            currentFolder.noteIds = currentFolder.noteIds.filter(id => id !== numNoteId);
+            saveData();
+            renderFolderNotes();
+            showToast('Đã xóa ghi chú khỏi thư mục');
+        }
+
+        function deleteFolderConfirm() {
+            if (!currentFolder) return;
+            
+            showConfirm('Bạn có chắc muốn xóa thư mục này? (Ghi chú sẽ không bị xóa)', () => {
+                DB.folders = DB.folders.filter(f => f.id !== currentFolder.id);
+                saveData();
+                closeFolderContent();
+                renderFolders();
+                showToast('Đã xóa thư mục');
+            });
+        }
+
+        // UI Helpers
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('active');
+            
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 3000);
+        }
+
+        function showConfirm(message, callback) {
+            confirmCallback = callback;
+            document.getElementById('confirmText').textContent = message;
+            document.getElementById('confirmDialog').classList.add('active');
+            
+            document.getElementById('confirmButton').onclick = () => {
+                if (confirmCallback) confirmCallback();
+                closeConfirm();
+            };
+        }
+
+        function closeConfirm() {
+            document.getElementById('confirmDialog').classList.remove('active');
+            confirmCallback = null;
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
